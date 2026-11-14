@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=../schema/v0.1/ai-policy.schema.json
+version: "0.1"
+level: "permissive"
+policy_url: "https://github.com/thanhtrieunguyen/ai-policy-kit/blob/main/presets/permissive.yml"
+
+categories:
+  code: "permissive"
+  docs: "permissive"
+  tests: "permissive"
+  reviews: "permissive"
+  issues: "permissive"
+
+disclosure:
+  required: false
+  methods:
+    - "pr_checklist"
+    - "pr_description"
+  tool_name_required: false
+  prompt_disclosure: "optional"
+
+accountability:
+  author_understands_code: false
+  author_takes_responsibility: true
+  dco_signoff: false
+
+bots:
+  automated_prs: "restricted"
+  automated_reviews: "permissive"
+  automated_issues: "permissive"

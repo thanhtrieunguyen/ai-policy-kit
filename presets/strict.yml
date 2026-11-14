@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=../schema/v0.1/ai-policy.schema.json
+version: "0.1"
+level: "forbidden"
+policy_url: "https://github.com/thanhtrieunguyen/ai-policy-kit/blob/main/presets/strict.yml"
+
+categories:
+  code: "forbidden"
+  docs: "restricted"
+  tests: "forbidden"
+  reviews: "forbidden"
+  issues: "forbidden"
+
+disclosure:
+  required: true
+  methods:
+    - "commit_trailer"
+    - "pr_checklist"
+  commit_trailer:
+    key: "AI-Assisted"
+    required: true
+    pattern: "^AI-Assisted: (None|docs:[a-zA-Z0-9_-]+)$"
+  tool_name_required: true
+  prompt_disclosure: "optional"
+
+accountability:
+  author_understands_code: true
+  author_takes_responsibility: true
+  dco_signoff: true
+
+bots:
+  automated_prs: "forbidden"
+  automated_reviews: "forbidden"
+  automated_issues: "forbidden"
+  bot_allowlist:
+    - "dependabot[bot]"
+    - "renovate[bot]"
