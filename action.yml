@@ -1,0 +1,44 @@
+name: 'ai-policy'
+description: 'Validates pull request compliance and prevents accidental workspace leaks against ai-policy.yml specification'
+author: 'Thanh Trieu Nguyen'
+branding:
+  icon: 'shield-check'
+  color: 'blue'
+
+inputs:
+  policy-path:
+    description: 'Path to ai-policy configuration file'
+    required: false
+    default: '.github/ai-policy.yml'
+  base-ref:
+    description: 'Base git reference for pull request diff'
+    required: false
+    default: 'main'
+  head-ref:
+    description: 'Head git reference for pull request diff'
+    required: false
+    default: 'HEAD'
+  pr-body:
+    description: 'Pull request description body to inspect for disclosure checklist'
+    required: false
+    default: ''
+  fail-on-leak:
+    description: 'Fail workflow run if accidental AI assistant workspace leaks are detected'
+    required: false
+    default: 'true'
+  output-format:
+    description: 'Format of output log (text, summary, or both)'
+    required: false
+    default: 'both'
+
+outputs:
+  passed:
+    description: 'Whether the pull request complies with policy requirements (true or false)'
+  violations:
+    description: 'Count of policy violations detected'
+  leaks:
+    description: 'Comma-separated list of leaked assistant files or count'
+
+runs:
+  using: 'node20'
+  main: 'dist/action.js'
