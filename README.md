@@ -4,7 +4,8 @@
 [![Schema: Draft-07](https://img.shields.io/badge/Schema-Draft--07-brightgreen.svg)](schema/v0.1/ai-policy.schema.json)
 [![Presets: Validated](https://img.shields.io/badge/Presets-Validated-success.svg)](presets/)
 [![Empirical Coverage](https://img.shields.io/badge/Empirical_Coverage-100%25_(25_OSS_Projects)-purple.svg)](dataset/summary.json)
-[![Tests: Passing](https://img.shields.io/badge/Tests-14%2F14_Passing-emerald.svg)](tests/)
+[![Tests: Passing](https://img.shields.io/badge/Tests-382%20Passing%20(100%25)-emerald.svg)](tests/)
+[![Security: Least Privilege](https://img.shields.io/badge/Security-Least--Privilege-blueviolet.svg)](docs/THREAT_MODEL.md)
 
 > **Standardized, machine-readable schema, presets, and validation tooling to declare and enforce AI contribution policies in open-source repositories.**
 
@@ -39,20 +40,117 @@ Most projects attempt to communicate their AI stance through unstructured paragr
 
 ## Quick Start
 
-### 1. Adopt a Policy in Your Repository
+### 1. Scaffold Configuration with CLI (`ai-policy init`)
 
-Choose the preset that matches your project's governance model and copy it to your repository root as `ai-policy.yml`:
+You can instantly initialize a policy configuration using the built-in CLI:
+
+```bash
+# Scaffold with default balanced preset
+npx ai-policy init
+
+# Or choose strict / permissive presets
+npx ai-policy init --preset strict
+npx ai-policy init --preset permissive
+
+# Generate policy configuration alongside AI_POLICY.md, AGENTS.md, and PR checklist template
+npx ai-policy init --preset balanced --docs
+```
+
+Or manually adopt a preset:
 
 ```bash
 # Option A: Strict (Zero AI code)
-curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/strict.yml -o ai-policy.yml
+curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/strict.yml -o .github/ai-policy.yml
 
 # Option B: Balanced (Human-assisted, recommended for most projects)
-curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/balanced.yml -o ai-policy.yml
+curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/balanced.yml -o .github/ai-policy.yml
 
 # Option C: Permissive (Free usage with disclosure)
-curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/permissive.yml -o ai-policy.yml
+curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/permissive.yml -o .github/ai-policy.yml
 ```
+
+### 2. Validate Policy (`ai-policy check`)
+
+Validate that your local or remote policy file conforms strictly to the schema:
+
+```bash
+# Discover and validate .github/ai-policy.yml in current directory
+npx ai-policy check
+
+# Validate a custom file or output machine-readable JSON
+npx ai-policy check ./path/to/custom-policy.yml --json
+```
+
+### 3. Validate Pull Requests Locally (`ai-policy lint-pr`)
+
+Inspect pull request commit trailers, PR body checklists, and verify no internal assistant workspace files (`.cursor/`, `.claude/`, `.gemini/`) are accidentally committed:
+
+```bash
+# Lint current feature branch against main
+npx ai-policy lint-pr --base main --head HEAD
+
+# Output machine-readable JSON for tooling
+npx ai-policy lint-pr --base origin/main --head HEAD --json
+```
+
+---
+
+## Official GitHub Action Integration
+
+Automate pull request validation directly in your CI pipeline using the official GitHub Action.
+
+### Workflow Example (`.github/workflows/ai-policy.yml`)
+
+```yaml
+name: AI Policy Compliance
+
+on:
+  pull_request:
+    branches: [ main ]
+
+# Enforce least-privilege permissions (read-only)
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-ai-policy:
+    name: Verify AI Contribution Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history required for commit trailer validation
+
+      - name: Run AI Policy Action
+        uses: thanhtrieunguyen/ai-policy-kit@v0.1.0
+        with:
+          policy-path: '.github/ai-policy.yml'
+          base-ref: ${{ github.base_ref }}
+          head-ref: ${{ github.head_ref }}
+          pr-body: ${{ github.event.pull_request.body }}
+          fail-on-leak: 'true'
+```
+
+### Action Inputs & Outputs
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `policy-path` | string | `.github/ai-policy.yml` | Path to repository policy configuration file |
+| `base-ref` | string | `main` | Base git reference for PR diff evaluation |
+| `head-ref` | string | `HEAD` | Head git reference for PR diff evaluation |
+| `pr-body` | string | `""` | PR description body to inspect for disclosure checklist |
+| `fail-on-leak` | boolean | `true` | Fail workflow if accidental AI assistant workspace leaks are detected |
+| `output-format`| string | `both` | Format of log output (`text`, `summary`, or `both`) |
+
+| Output | Type | Description |
+| :--- | :--- | :--- |
+| `passed` | string (`true`/`false`) | Whether the pull request satisfies all policy requirements |
+| `violations` | string (number) | Count of detected policy violations |
+| `leaks` | string | List or count of leaked AI assistant workspace files |
+
+For detailed security guidelines and fork safety considerations, see **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**.
 
 ### 2. Example `ai-policy.yml`
 
@@ -221,9 +319,9 @@ ai-policy-kit/
 ## Roadmap
 
 - [x] **v0.1 Specification**: Empirical dataset of 25 projects, Draft-07 JSON Schema, 3 standard presets, and RFC-001.
-- [ ] **v0.2 CLI Tooling**: Standalone `ai-policy` CLI (`init`, `check`, `lint-pr`).
-- [ ] **v0.3 GitHub Action**: Plug-and-play official GitHub Action for PR triage comments and commit trailer enforcement.
-- [ ] **v1.0 Ecosystem Launch**: Community integrations with pre-commit, MegaLinter, and repository governance dashboards.
+- [x] **v0.2 Core Library & CLI Tooling**: Standalone `ai-policy` CLI (`init`, `check`, `lint-pr`) with deterministic exit codes and leak prevention.
+- [x] **v0.3 GitHub Action & Security**: Official GitHub Action (`action.yml`), step summaries, least-privilege threat model (`docs/THREAT_MODEL.md`), and automated CI workflows.
+- [ ] **v1.0 Community Packaging & Launch**: npm provenance release, pre-commit hook integrations, and pilot repository adoptions.
 
 ---
 

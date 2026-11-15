@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/schema/v0.1/ai-policy.schema.json
+version: "0.1"
+level: "restricted"
+policy_url: "https://github.com/thanhtrieunguyen/ai-policy-kit/blob/main/presets/balanced.yml"
+
+categories:
+  code: "restricted"
+  docs: "permissive"
+  tests: "restricted"
+  reviews: "restricted"
+  issues: "restricted"
+
+disclosure:
+  required: true
+  methods:
+    - "commit_trailer"
+    - "pr_checklist"
+    - "pr_description"
+  commit_trailer:
+    key: "AI-Assisted"
+    required: false
+    pattern: "^AI-Assisted: .+$"
+  tool_name_required: true
+  prompt_disclosure: "optional"
+
+accountability:
+  author_understands_code: true
+  author_takes_responsibility: true
+  dco_signoff: false
+
+bots:
+  automated_prs: "forbidden"
+  automated_reviews: "forbidden"
+  automated_issues: "restricted"
+  bot_allowlist:
+    - "dependabot[bot]"
+    - "renovate[bot]"
