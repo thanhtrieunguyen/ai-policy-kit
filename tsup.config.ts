@@ -7,6 +7,7 @@ export default defineConfig({
     action: 'src/action/index.ts',
   },
   format: ['esm'],
+  platform: 'node',
   target: 'es2022',
   dts: true,
   clean: true,
@@ -14,6 +15,10 @@ export default defineConfig({
   splitting: false,
   treeshake: true,
   shims: true,
+  noExternal: ['yaml'],
+  banner: {
+    js: `import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);`,
+  },
   outExtension() {
     return {
       js: '.js',

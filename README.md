@@ -4,18 +4,18 @@
 [![Schema: Draft-07](https://img.shields.io/badge/Schema-Draft--07-brightgreen.svg)](schema/v0.1/ai-policy.schema.json)
 [![Presets: Validated](https://img.shields.io/badge/Presets-Validated-success.svg)](presets/)
 [![Empirical Coverage](https://img.shields.io/badge/Empirical_Coverage-100%25_(25_OSS_Projects)-purple.svg)](dataset/summary.json)
-[![Tests: Passing](https://img.shields.io/badge/Tests-382%20Passing%20(100%25)-emerald.svg)](tests/)
+[![Tests: Passing](https://img.shields.io/badge/Tests-368%20Passing%20(100%25)-emerald.svg)](tests/)
 [![Security: Least Privilege](https://img.shields.io/badge/Security-Least--Privilege-blueviolet.svg)](docs/THREAT_MODEL.md)
 
 > **Standardized, machine-readable schema, presets, and validation tooling to declare and enforce AI contribution policies in open-source repositories.**
 
 ---
 
-## Overview
+## The Problem
 
 As generative AI coding assistants and autonomous agents become ubiquitous, open-source maintainers face an unprecedented surge of unverified, machine-generated pull requests ("AI slop") and hallucinated vulnerability reports. At the same time, many legitimate contributors use AI responsibly for boilerplate, typing, refactoring, or documentation.
 
-Most projects attempt to communicate their AI stance through unstructured paragraphs in `CONTRIBUTING.md` or developer wikis. Such natural language guidelines cannot be verified in continuous integration (CI), checked by pre-commit hooks, or rendered consistently in developer tools.
+Most projects attempt to communicate their AI stance through unstructured paragraphs in `CONTRIBUTING.md` or developer wikis. Such natural language guidelines **cannot be verified in continuous integration (CI)**, checked by pre-commit hooks, or rendered consistently in developer tools. Maintainers are left with manual nagging, subjective arguments, and burnout.
 
 **`ai-policy-kit` provides a deterministic, machine-actionable standard:**
 * **Machine-Readable Standard (`ai-policy.yml`)**: Declare your repository's AI contribution rules with a formal JSON Schema Draft-07.
@@ -23,6 +23,120 @@ Most projects attempt to communicate their AI stance through unstructured paragr
 * **Deterministic & Zero-LLM**: No flaky probabilistic AI content detectors that trigger false positives on human contributors. Enforcement relies on transparent PR disclosure checklists, commit trailers, and author comprehension sign-offs.
 * **Ready-to-Use Presets**: Instant configuration with three battle-tested presets: `strict`, `balanced`, and `permissive`.
 * **CI/CD Ready**: Easy integration with GitHub Actions, pre-commit linters, and IDE schema validation.
+
+---
+
+## 3 Instant Quickstart Commands
+
+Scaffold, validate, and lint pull requests with zero configuration:
+
+```bash
+# 1. Scaffold policy configuration and human-readable docs
+npx ai-policy init --preset balanced --docs
+
+# 2. Validate policy configuration against JSON Schema Draft-07
+npx ai-policy check
+
+# 3. Validate PR commit trailers, checklists, and detect workspace leaks
+npx ai-policy lint-pr --base main --head HEAD
+```
+
+---
+
+## 10-Minute Quickstart Walkthrough
+
+Follow this step-by-step guide to protect your repository in under 10 minutes:
+
+### Step 1: Scaffold Policy Configuration & Documentation
+
+Run `ai-policy init` with your preferred preset (`strict`, `balanced`, or `permissive`). Adding `--docs` generates human-readable policy documentation and templates automatically:
+
+```bash
+npx ai-policy init --preset balanced --docs
+```
+
+This creates four essential files in your repository:
+* `.github/ai-policy.yml`: The machine-readable configuration conforming to JSON Schema Draft-07.
+* `AI_POLICY.md`: Standardized human-readable policy documentation for contributors.
+* `AGENTS.md`: Directives and constraints for AI coding agents.
+* `.github/PULL_REQUEST_TEMPLATE.md`: Interactive disclosure checklist for inbound PRs.
+
+### Step 2: Validate Policy Syntax
+
+Verify that your policy file conforms to the schema specification:
+
+```bash
+npx ai-policy check
+```
+
+Output:
+```text
+✓ Policy valid and compliant: .github/ai-policy.yml
+
+ai-policy is a deterministic policy compliance validator, NOT an AI text/code detector.
+```
+
+### Step 3: Test Local Commits & Workspace Leaks
+
+Test your local feature branch before opening a pull request to ensure all commits contain required trailers and no accidental AI IDE directories (`.cursor/`, `.claude/`, etc.) are staged:
+
+```bash
+npx ai-policy lint-pr --base main --head HEAD
+```
+
+Output:
+```text
+✓ Compliance check passed: PR satisfies AI contribution policy
+  Commits evaluated: 1
+  Policy configuration: .github/ai-policy.yml
+
+ai-policy is a deterministic policy compliance validator, NOT an AI text/code detector.
+```
+
+### Step 4: Automate in GitHub Actions CI
+
+Add the official GitHub Action workflow to `.github/workflows/ai-policy.yml`:
+
+```yaml
+name: AI Policy Compliance
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-ai-policy:
+    name: Verify AI Contribution Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full git history required for commit trailer validation
+
+      - name: Run AI Policy Action
+        uses: thanhtrieunguyen/ai-policy-kit@v0.1.0
+        with:
+          policy-path: '.github/ai-policy.yml'
+          base-ref: ${{ github.base_ref }}
+          head-ref: ${{ github.head_ref }}
+          pr-body: ${{ github.event.pull_request.body }}
+          fail-on-leak: 'true'
+```
+
+### Step 5: Link Policy in `CONTRIBUTING.md`
+
+Add a short notice pointing to `AI_POLICY.md`:
+
+```markdown
+## AI Contribution Guidelines
+This project adheres to the [AI Contribution Policy](AI_POLICY.md).
+All inbound pull requests are automatically validated for policy compliance in CI.
+```
 
 ---
 
@@ -38,230 +152,140 @@ Most projects attempt to communicate their AI stance through unstructured paragr
 
 ---
 
-## Quick Start
+## Complete End-to-End Example
 
-### 1. Scaffold Configuration with CLI (`ai-policy init`)
+Here is a complete, real-world example demonstrating how configuration, commit messages, PR descriptions, and CI enforcement connect.
 
-You can instantly initialize a policy configuration using the built-in CLI:
-
-```bash
-# Scaffold with default balanced preset
-npx ai-policy init
-
-# Or choose strict / permissive presets
-npx ai-policy init --preset strict
-npx ai-policy init --preset permissive
-
-# Generate policy configuration alongside AI_POLICY.md, AGENTS.md, and PR checklist template
-npx ai-policy init --preset balanced --docs
-```
-
-Or manually adopt a preset:
-
-```bash
-# Option A: Strict (Zero AI code)
-curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/strict.yml -o .github/ai-policy.yml
-
-# Option B: Balanced (Human-assisted, recommended for most projects)
-curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/balanced.yml -o .github/ai-policy.yml
-
-# Option C: Permissive (Free usage with disclosure)
-curl -fsSL https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/presets/permissive.yml -o .github/ai-policy.yml
-```
-
-### 2. Validate Policy (`ai-policy check`)
-
-Validate that your local or remote policy file conforms strictly to the schema:
-
-```bash
-# Discover and validate .github/ai-policy.yml in current directory
-npx ai-policy check
-
-# Validate a custom file or output machine-readable JSON
-npx ai-policy check ./path/to/custom-policy.yml --json
-```
-
-### 3. Validate Pull Requests Locally (`ai-policy lint-pr`)
-
-Inspect pull request commit trailers, PR body checklists, and verify no internal assistant workspace files (`.cursor/`, `.claude/`, `.gemini/`) are accidentally committed:
-
-```bash
-# Lint current feature branch against main
-npx ai-policy lint-pr --base main --head HEAD
-
-# Output machine-readable JSON for tooling
-npx ai-policy lint-pr --base origin/main --head HEAD --json
-```
-
----
-
-## Official GitHub Action Integration
-
-Automate pull request validation directly in your CI pipeline using the official GitHub Action.
-
-### Workflow Example (`.github/workflows/ai-policy.yml`)
-
-```yaml
-name: AI Policy Compliance
-
-on:
-  pull_request:
-    branches: [ main ]
-
-# Enforce least-privilege permissions (read-only)
-permissions:
-  contents: read
-  pull-requests: read
-
-jobs:
-  validate-ai-policy:
-    name: Verify AI Contribution Policy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Full history required for commit trailer validation
-
-      - name: Run AI Policy Action
-        uses: thanhtrieunguyen/ai-policy-kit@v0.1.0
-        with:
-          policy-path: '.github/ai-policy.yml'
-          base-ref: ${{ github.base_ref }}
-          head-ref: ${{ github.head_ref }}
-          pr-body: ${{ github.event.pull_request.body }}
-          fail-on-leak: 'true'
-```
-
-### Action Inputs & Outputs
-
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `policy-path` | string | `.github/ai-policy.yml` | Path to repository policy configuration file |
-| `base-ref` | string | `main` | Base git reference for PR diff evaluation |
-| `head-ref` | string | `HEAD` | Head git reference for PR diff evaluation |
-| `pr-body` | string | `""` | PR description body to inspect for disclosure checklist |
-| `fail-on-leak` | boolean | `true` | Fail workflow if accidental AI assistant workspace leaks are detected |
-| `output-format`| string | `both` | Format of log output (`text`, `summary`, or `both`) |
-
-| Output | Type | Description |
-| :--- | :--- | :--- |
-| `passed` | string (`true`/`false`) | Whether the pull request satisfies all policy requirements |
-| `violations` | string (number) | Count of detected policy violations |
-| `leaks` | string | List or count of leaked AI assistant workspace files |
-
-For detailed security guidelines and fork safety considerations, see **[THREAT_MODEL.md](docs/THREAT_MODEL.md)**.
-
-### 2. Example `ai-policy.yml`
-
-Here is an example configuration based on the balanced preset:
+### 1. Configuration File (`.github/ai-policy.yml`)
 
 ```yaml
 # yaml-language-server: $schema=https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/schema/v0.1/ai-policy.schema.json
-schema_version: "0.1.0"
-policy_name: "Balanced AI Contribution Policy"
-policy_url: "https://github.com/your-org/your-repo/blob/main/CONTRIBUTING.md#ai-policy"
-last_updated: "2026-11-14"
-
-# Policy Level: forbidden | restricted | permissive
+version: "0.1"
 level: "restricted"
+policy_url: "https://github.com/your-org/your-repo/blob/main/AI_POLICY.md"
+policy_path: "AI_POLICY.md"
 
 categories:
-  code:
-    allowed: true
-    restrictions:
-      - "AI may be used for autocomplete, boilerplate, and refactoring."
-      - "Author must personally understand and verify every line of code."
-  documentation:
-    allowed: true
-  tests:
-    allowed: true
-    restrictions:
-      - "Generated tests must be verified against actual edge cases."
-  reviews:
-    allowed: false
-    restrictions:
-      - "Automated AI reviews on inbound PRs are forbidden."
+  code: "restricted"
+  docs: "permissive"
+  tests: "restricted"
+  reviews: "forbidden"
+  issues: "restricted"
 
 disclosure:
   required: true
   methods:
+    - "commit_trailer"
     - "pr_checklist"
     - "pr_description"
   commit_trailer:
+    key: "AI-Assisted"
     required: false
-    token: "AI-Assisted"
+    pattern: "^(None|[a-zA-Z0-9_-]+( [0-9.]+)?.*)$"
+  tool_name_required: true
+  prompt_disclosure: "optional"
 
 accountability:
-  author_takes_responsibility: true
   author_understands_code: true
+  author_takes_responsibility: true
   dco_signoff: true
 
 bots:
-  automated_prs: "forbidden"
-  automated_issues: "forbidden"
+  automated_prs: "restricted"
   automated_reviews: "forbidden"
+  automated_issues: "forbidden"
+  bot_allowlist:
+    - "dependabot[bot]"
+    - "renovate[bot]"
+```
+
+### 2. Sample Commit Message with RFC 5322 Trailer
+
+When authoring a commit with AI assistance, include standard Git trailers at the end of the commit body:
+
+```text
+feat(auth): add refresh token rotation
+
+Implements single-use refresh token rotation to mitigate replay attacks.
+
+Signed-off-by: Jane Contributor <jane@example.org>
+AI-Assisted: Claude 3.5 Sonnet (scaffolded unit tests and type annotations)
+```
+
+### 3. Pull Request Description Checklist
+
+In `.github/PULL_REQUEST_TEMPLATE.md`, contributors disclose tool usage and warrant comprehension:
+
+```markdown
+### AI Contribution Disclosure
+- [x] Generative AI tools were used in this contribution.
+- [x] Tool name / model: Claude 3.5 Sonnet
+- [x] I personally reviewed and understand every line of code submitted.
+- [x] I take full technical and legal responsibility for this contribution.
+```
+
+### 4. Sample CLI Output
+
+When running `ai-policy lint-pr`:
+
+```bash
+$ npx ai-policy lint-pr --base main --head HEAD
+✓ Compliance check passed: PR satisfies AI contribution policy
+  Commits evaluated: 2
+  Policy configuration: .github/ai-policy.yml
+
+ai-policy is a deterministic policy compliance validator, NOT an AI text/code detector.
+```
+
+If a policy violation or accidental workspace leak is detected:
+
+```bash
+$ npx ai-policy lint-pr --base main --head HEAD
+✗ Compliance check failed with 1 policy violation:
+  [ERROR] Commit a1b2c3d missing required commit trailer "AI-Assisted"
+  [ERROR] Accidental AI assistant workspace leak detected: .cursor/rules.json
+
+ai-policy is a deterministic policy compliance validator, NOT an AI text/code detector.
 ```
 
 ---
 
-## Validation & Testing
+## Summary FAQ & Known Limitations
 
-`ai-policy-kit` includes automated validation tools to ensure your policy conforms strictly to the schema.
+> For detailed analysis, see **[docs/faq.md](docs/faq.md)** and **[docs/limitations.md](docs/limitations.md)**.
 
-### Validate Presets and Custom Policies
+* **Deterministic, Zero-LLM Architecture**: `ai-policy-kit` does NOT guess code origin using statistical or neural AI detectors. Heuristic detectors suffer from high false-positive rates (20–40% on idiomatic code) and bias against non-native English writers. `ai-policy-kit` checks **explicit, auditable developer signals** (commit trailers, PR checklists, author attestations, and workspace leaks).
+* **Declarative Compliance**: Verifies declared transparency; cannot detect undisclosed AI code if an author intentionally omits all trailers and checkboxes. Open-source governance has historically relied on human legal attestations (Linux DCO, Apache CLA), not surveillance.
+* **Commit History in CI**: Git commit trailer inspection requires full commit history (`fetch-depth: 0` in `actions/checkout@v4`).
+* **Zero External Dependencies**: Operates 100% offline without external AI detection APIs, network calls, or recurring subscription costs.
 
-Run the built-in validation script:
+---
 
-```bash
-# Validate all standard presets
-python tests/validate_presets.py
+## Objective Ecosystem Comparison
 
-# Run full test suite (14 test cases including adversarial mutations)
-python -m unittest discover -s tests -v
-```
+> For detailed qualitative analysis, see **[docs/comparison.md](docs/comparison.md)**.
 
-### IDE Schema Autocomplete (VS Code)
+| Evaluation Dimension | `ai-policy-kit` | `tessl good-oss-citizen` | `Scientific Python (SPE 008)` | `GitHub Native Controls` | `Probabilistic AI Detectors` |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Primary Mechanism** | Deterministic JSON Schema + CLI + Action | Prompt-based LLM skill | Static prose guideline template | Platform branch protection & rulesets | Statistical / Neural classifiers |
+| **Machine Actionable** | **Yes** (`ai-policy.yml`) | Partial (prompts) | No (human reading only) | **Yes** (ruleset UI/API) | No (score 0–100%) |
+| **Zero-LLM / Deterministic** | **Yes** (100% reproducible) | No (probabilistic LLM) | N/A (prose) | **Yes** (platform rules) | No (probabilistic) |
+| **Git Trailer Enforcement** | **Yes** (`lint-pr`) | No | Recommended in prose | No | No |
+| **Workspace Leak Guard** | **Yes** (`.cursor/`, `.claude/`) | No | No | Partial (Secret Scanning) | No |
+| **False Positive Rate** | **0%** (deterministic rules) | Variable (model drift) | N/A | 0% | **High** (20–40% on code) |
+| **Offline / Local CLI** | **Yes** (`ai-policy`) | No (requires LLM API) | N/A | No (GitHub cloud only) | No (Cloud API only) |
+| **Open Standard** | **JSON Schema Draft-07 (MIT)** | Vendor skill | Community guideline | Proprietary | Commercial SaaS |
 
-Add this line at the top of your `ai-policy.yml` file to get instant autocompletion, field descriptions, and real-time schema validation in Visual Studio Code (via the YAML extension):
+---
+
+## Schema Reference & IDE Autocomplete
+
+For exhaustive technical reference on all 8 root schema fields and sub-objects, consult **[docs/schema-reference.md](docs/schema-reference.md)**.
+
+Add this line to the top of your `ai-policy.yml` file to enable real-time autocompletion, field descriptions, and schema validation in Visual Studio Code (via the Red Hat YAML extension):
 
 ```yaml
 # yaml-language-server: $schema=https://raw.githubusercontent.com/thanhtrieunguyen/ai-policy-kit/main/schema/v0.1/ai-policy.schema.json
-```
-
----
-
-## Continuous Integration (GitHub Actions)
-
-Integrate policy checks into your GitHub pull request workflows. Check that inbound pull requests contain required disclosure tags or commit trailers:
-
-```yaml
-name: AI Contribution Policy Check
-
-on:
-  pull_request:
-    types: [opened, edited, synchronize]
-
-jobs:
-  check-policy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Validate ai-policy.yml against Schema
-        uses: python/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: |
-          pip install jsonschema pyyaml
-          python -c "
-          import yaml, json, jsonschema
-          schema = json.load(open('schema/v0.1/ai-policy.schema.json'))
-          policy = yaml.safe_load(open('ai-policy.yml'))
-          jsonschema.validate(instance=policy, schema=schema)
-          print('ai-policy.yml is valid!')
-          "
 ```
 
 ---
@@ -290,14 +314,21 @@ Full survey transcripts and classification details:
 
 ## Repository Structure
 
-```
+```text
 ai-policy-kit/
-├── .github/                     # Issue templates & GitHub workflows
+├── .github/
+│   ├── workflows/               # CI and AI policy compliance workflows
+│   └── PULL_REQUEST_TEMPLATE.md # PR disclosure checklist template
 ├── dataset/
 │   ├── policies/                # 25 verbatim OSS policies (Gentoo, Chromium, curl, SciPy...)
-│   └── summary.json             # Structured multi-dimensional metadata & attribute frequency
+│   └── summary.json             # Structured multi-dimensional metadata & statistics
 ├── docs/
-│   └── rfc-001-ai-policy-schema.md # Complete architectural RFC specification
+│   ├── comparison.md            # Objective ecosystem comparison table & analysis
+│   ├── faq.md                   # Frequently Asked Questions
+│   ├── limitations.md           # Known technical boundaries & architectural scope
+│   ├── rfc-001-ai-policy-schema.md # Complete architectural RFC specification
+│   ├── schema-reference.md      # Exhaustive v0.1 schema field reference
+│   └── THREAT_MODEL.md          # Security threat model & least-privilege analysis
 ├── presets/
 │   ├── strict.yml               # Zero AI code preset
 │   ├── balanced.yml             # Assistive AI with disclosure & accountability preset
@@ -305,23 +336,13 @@ ai-policy-kit/
 ├── schema/
 │   └── v0.1/
 │       └── ai-policy.schema.json # JSON Schema Draft-07 specification
-├── tests/
-│   ├── test_schema.py           # Unit tests & adversarial negative tests
-│   └── validate_presets.py      # Preset validation runner
-├── CONTRIBUTING.md              # Contributor guidelines
+├── src/                         # TypeScript core library, CLI, and GitHub Action
+├── tests/                       # Unit, integration, and E2E test suites (368 tests)
+├── action.yml                   # Official GitHub Action metadata
 ├── LICENSE                      # MIT License
-├── README.md                    # Project documentation
-└── SECURITY.md                  # Vulnerability disclosure policy
+├── package.json                 # Package manifest
+└── README.md                    # Project documentation
 ```
-
----
-
-## Roadmap
-
-- [x] **v0.1 Specification**: Empirical dataset of 25 projects, Draft-07 JSON Schema, 3 standard presets, and RFC-001.
-- [x] **v0.2 Core Library & CLI Tooling**: Standalone `ai-policy` CLI (`init`, `check`, `lint-pr`) with deterministic exit codes and leak prevention.
-- [x] **v0.3 GitHub Action & Security**: Official GitHub Action (`action.yml`), step summaries, least-privilege threat model (`docs/THREAT_MODEL.md`), and automated CI workflows.
-- [ ] **v1.0 Community Packaging & Launch**: npm provenance release, pre-commit hook integrations, and pilot repository adoptions.
 
 ---
 

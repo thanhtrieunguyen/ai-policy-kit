@@ -167,7 +167,7 @@ describe('Tier 2: Boundary & Corner Cases Suite', { timeout: 60000 }, () => {
         expect(mod).toBeDefined();
         expect(typeof mod.loadPolicy).toBe('function');
         expect(typeof mod.validatePolicy).toBe('function');
-        expect(mod.VERSION).toBe('0.1.0');
+        expect(mod.VERSION).toBe('1.0.0');
       });
 
       it('T2-F1-02: Public Export Surface Completeness & Constant Invariance', () => {
@@ -275,10 +275,12 @@ describe('Tier 2: Boundary & Corner Cases Suite', { timeout: 60000 }, () => {
         const exportKeys = Object.keys(pkg.exports || {});
         expect(exportKeys).toContain('.');
         expect(exportKeys).toContain('./package.json');
+        expect(exportKeys).toContain('./presets/*');
+        expect(exportKeys).toContain('./schema/*');
         expect(exportKeys).not.toContain('./src');
         expect(exportKeys).not.toContain('./src/*');
         expect(exportKeys).not.toContain('./dist/engine');
-        expect(exportKeys.length).toBe(2);
+        expect(exportKeys.length).toBe(4);
       });
 
       it('T2-F2-02: Package Manifest Strict JSON & Field Schema Boundary', () => {

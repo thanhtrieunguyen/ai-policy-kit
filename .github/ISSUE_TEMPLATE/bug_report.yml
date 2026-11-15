@@ -1,0 +1,110 @@
+name: Bug Report
+description: Report an unexpected behavior, error, or failure in ai-policy-kit.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug! Please ensure you have searched [existing issues](https://github.com/thanhtrieunguyen/ai-policy-kit/issues) to verify this problem hasn't already been reported.
+
+        *Note: If you believe you have discovered a security vulnerability, please do NOT file a public issue. See our [Security Policy](https://github.com/thanhtrieunguyen/ai-policy-kit/blob/main/SECURITY.md) for private reporting.*
+
+  - type: input
+    id: version
+    attributes:
+      label: ai-policy-kit Version
+      description: Run `ai-policy --version` or check your `package.json` / Action version.
+      placeholder: "e.g., 0.1.0 (or commit SHA)"
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js & Package Manager Version
+      description: Run `node -v` and `npm -v` (or `pnpm -v`).
+      placeholder: "e.g., Node.js v20.18.0, npm 10.8.2"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component Affected
+      description: Select the primary module where the issue occurred.
+      options:
+        - "CLI (ai-policy init)"
+        - "CLI (ai-policy check)"
+        - "CLI (ai-policy lint-pr)"
+        - "GitHub Action (action.yml)"
+        - "Schema Validation (Ajv / diagnostics)"
+        - "Engine (Policy parser / finder)"
+        - "Git Inspection (diff / trailers / leaks)"
+        - "Presets / Markdown Templates"
+        - "Documentation / Examples"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What OS are you running on?
+      options:
+        - "Ubuntu / Linux (x64 / arm64)"
+        - "macOS (Apple Silicon / Intel)"
+        - "Windows 11 / 10 (PowerShell / cmd)"
+        - "Windows WSL2"
+        - "GitHub Actions Runner"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the Bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Provide minimal steps or a minimal repository/configuration snippet to reproduce the issue.
+      placeholder: |
+        1. Run `ai-policy init --preset balanced`
+        2. Modify `.github/ai-policy.yml` with ...
+        3. Run `ai-policy check`
+        4. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior & Logs
+      description: Paste any error messages, terminal output, or CI logs here (please use code blocks).
+      render: shell
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have searched existing issues and verified this is not a duplicate.
+          required: true
+        - label: I have tested with the latest version of `ai-policy-kit`.
+          required: false
+        - label: This report does not contain any sensitive tokens, API keys, or private workspace data.
+          required: true

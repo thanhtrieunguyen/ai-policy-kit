@@ -1,0 +1,73 @@
+name: Feature Request / Enhancement
+description: Suggest an idea, enhancement, new preset, CLI option, or schema capability for ai-policy-kit.
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an enhancement! 
+
+        *Note: `ai-policy-kit` is built on the principle of **deterministic policy validation**, NOT probabilistic AI detection or guessing. Feature requests should focus on deterministic configuration, git metadata, policy schemas, or developer ergonomics.*
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement / Use Case
+      description: Is your feature request related to a specific problem or workflow friction? Please describe clearly.
+      placeholder: "I am always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution & Syntax
+      description: Describe your proposed solution, CLI command syntax, schema addition, or workflow integration.
+      placeholder: "Provide a new flag `--dry-run` or new preset `academic` that..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Primary Component
+      description: Which part of the toolkit would this feature impact?
+      options:
+        - "CLI (ai-policy init)"
+        - "CLI (ai-policy check)"
+        - "CLI (ai-policy lint-pr)"
+        - "GitHub Action"
+        - "JSON Schema v0.1 Specification"
+        - "Built-in Presets"
+        - "Git Inspection (leaks / trailers)"
+        - "Documentation / Guides"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions, workarounds, or external scripts?
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or RFC references.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to submit a Pull Request to implement this feature.
+          required: false
+        - label: I have verified this feature request adheres to deterministic validation principles.
+          required: true

@@ -44,7 +44,7 @@ describe('Toolchain & Starter Code Verification', () => {
 
   describe('Core Starter Contract Exports', () => {
     it('exports VERSION and version matching semver format', () => {
-      expect(VERSION).toBe('0.1.0');
+      expect(VERSION).toBe('1.0.0');
       expect(version).toBe(VERSION);
       expect(VERSION).toMatch(/^\d+\.\d+\.\d+$/);
     });
